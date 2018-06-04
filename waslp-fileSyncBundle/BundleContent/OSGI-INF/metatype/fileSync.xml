@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metatype:MetaData
+  xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.1.0"
+  xmlns:ibm="http://www.ibm.com/xmlns/appservers/osgi/metatype/v1.0.0">
+
+  <OCD id="fileSync" name="fileSync">
+    <AD id="baseURL" name="baseURL" type="String" required="true"/>
+    <AD id="user" name="user" type="String"/>
+    <AD id="password" name="password" type="String"/>
+    <AD id="policy" name="policy" ibm:type="pid" ibm:reference="policy-pid"
+      required="true" type="String" cardinality="6" />       
+  </OCD>
+
+  <OCD id="policy" name="policy">
+    <AD id="source" name="source" type="String" required="true" />
+    <AD id="pollInterval" name="pollInterval" type="Integer" default="5000" required="false"/>
+    <AD id="minSyncInterval" name="minSyncInterval" type="Integer" default="15000" required="false"/>
+    <AD id="recursive" name="recursive" type="Boolean" default="true" required="false"/>
+    <AD id="target" name="target" ibm:type="pid" ibm:reference="target-pid"
+      required="true" type="String" cardinality="6" />
+  </OCD>
+  
+  <Designate factoryPid="policy-pid">
+    <Object ocdref="policy"/>
+  </Designate>
+  
+  
+  <Designate pid="fileSync">
+    <Object ocdref="fileSync" />
+  </Designate>
+    
+  <OCD id="target" name="target" >
+    <AD id="hostName" name="hostName" type="String" required="true"/>
+    <AD id="serverName" name="serverName" type="String" required="false" />
+    <AD id="serverUserDir" name="serverUserDir" type="String" required="false" />
+    <AD id="outputDir" name="outputDir" type="String" required="true" />
+  </OCD> 
+ 
+
+  <Designate factoryPid="target-pid">
+    <Object ocdref="target" />
+  </Designate>
+  
+</metatype:MetaData>
