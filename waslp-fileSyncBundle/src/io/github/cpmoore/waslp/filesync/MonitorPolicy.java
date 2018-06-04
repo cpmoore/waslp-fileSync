@@ -189,6 +189,9 @@ public class MonitorPolicy extends Thread{
 	
     public void registerSources(String...sources) {
     	for(String source:sources) {
+    		  if(!source.startsWith("/")) {
+    			  source=PathUtil.normalizePath(new File(source).getAbsolutePath());
+    		  }
 			  logger.info("Monitoring changes to "+source);
 			  monitoredFiles.add(new MonitoredFile(source,recursive,new RelativeEventHandler(source)));
 		}

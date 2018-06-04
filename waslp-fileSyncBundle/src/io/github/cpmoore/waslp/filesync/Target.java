@@ -21,7 +21,7 @@ public class Target {
     public String outputDir;
     
 	public Target(Dictionary<String,?> properties) throws IOException {
-		this.outputDir=PathUtil.normalizePath((String) properties.get("outputDir"));
+		this.outputDir=PathUtil.normalizePath((String) properties.get("outputDir")).replace("%{", "${");
 		this.hostName=(String) properties.get("hostName");
 		this.serverName=(String) properties.get("serverName");
 		if(this.serverName!=null&&this.serverName.trim().equals("")) {
