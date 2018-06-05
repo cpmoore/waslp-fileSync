@@ -21,7 +21,12 @@ public class PathUtil {
     	 if(!file.startsWith("/")) {
     		return file;
     	 }
-    	 file=file.substring(sourcePath.length());
+    	 if(file.startsWith(sourcePath)) {
+    	     file=file.substring(sourcePath.length());
+    	 }
+    	 while(file.startsWith("/")) {
+    		 file=file.substring(1);
+    	 }
 		 while(file.endsWith("/")) {
 			 file=file.substring(0, file.length()-1);
 		 }

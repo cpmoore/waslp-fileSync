@@ -35,6 +35,7 @@ import com.ibm.websphere.crypto.UnsupportedCryptoAlgorithmException;
 
 
 import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
+import io.github.cpmoore.waslp.filesync.util.PathUtil;
 
 
 public class JaxrsFileTransfer implements FileTransferHandler {
@@ -189,19 +190,17 @@ public class JaxrsFileTransfer implements FileTransferHandler {
    
 	@Override
 	public Boolean sendFile(String sourcePath, String relativeFile, Target target) {
-		String file = relativeFile;
-		if (!relativeFile.startsWith("/")) {
-			file = sourcePath + "/" + relativeFile;
-		} else if(relativeFile.startsWith(sourcePath+"/")){
-			relativeFile = relativeFile.substring(sourcePath.length() + 1);
-		}else {
-			while(relativeFile.startsWith("/")) {
-				relativeFile=relativeFile.substring(1);
-			}
+		String file = sourcePath+"/"+relativeFile;
+		while(file.endsWith("/")) {
+			file=file.substring(0,file.length()-1);
 		}
+//		if (!relativeFile.startsWith("/")) {
+//			file = sourcePath + "/" + relativeFile;
+//		} else if(relativeFile.startsWith(sourcePath+"/")){
+//			relativeFile=PathUtil.getRelative(file, sourcePath);
+//		}
 
-		logger.info(
-				"Sending file " + file + " to " + target + ",outputPath=" + target.getOutputDir() + "/" + relativeFile);
+		logger.info("Sending file " + file + " to " + target + ",outputPath=" + target.getOutputDir() + "/" + relativeFile);
 		String parms;
 		try {
 			parms = URLEncoder.encode(target.getOutputDir() + "/" + relativeFile, "UTF-8")
@@ -253,7 +252,7 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 		if (!relativeFile.startsWith("/")) {
 			file = sourcePath + "/" + relativeFile;
 		} else {
-			relativeFile = relativeFile.substring(sourcePath.length() + 1);
+			relativeFile=PathUtil.getRelative(file, sourcePath);
 		}
 		logger.info("Deleting file " + file + " from " + target + ",outputPath=" + target.getOutputDir() + "/"
 				+ relativeFile);
