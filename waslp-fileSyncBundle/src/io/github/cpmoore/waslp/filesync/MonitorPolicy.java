@@ -201,6 +201,16 @@ public class MonitorPolicy extends Thread{
  	   }
  	}
 	
+     public void stopMonitoring() {
+    	for(Target target:targets) {
+    		if(target.isAlive()) {
+    	      target.interrupt();
+    		}
+    	}
+    	if(this.isAlive()) {
+   		  this.interrupt();
+   		}
+     }
     
 	
 	

@@ -32,9 +32,7 @@ public class FileSyncService implements ManagedService{
 	    private static ArrayList<MonitorPolicy> monitorPolicies=new ArrayList<MonitorPolicy>();
 	    public void unregisterPolicies() {
 	    	for(MonitorPolicy policy:monitorPolicies) {
-	    		if(policy.isAlive()) {
-	    		  policy.interrupt();
-	    		}
+	    		policy.stopMonitoring();
 	    	}
 	    	monitorPolicies.clear();
 	    	

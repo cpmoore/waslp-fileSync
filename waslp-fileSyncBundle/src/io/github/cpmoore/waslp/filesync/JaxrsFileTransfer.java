@@ -56,18 +56,54 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 		this.user = user;
 		this.password = password;
 		this.inputSSLProtocol=sslProtcol;
+		this.isCollectiveController=isCollectiveController();
 
+	}
+	public Boolean isCollectiveController()  {
+		if(isCollectiveController!=null) {
+			return isCollectiveController;
+		}
+		try {
+			String url=this.baseURL+"/IBMJMXConnectorREST/mbeans/WebSphere%3Afeature%3DcollectiveController%2Cname%3DRoutingContext%2Ctype%3DRoutingContext";
+		    WebTarget webtarget = getClient().target(url);
+		    Invocation.Builder builder = webtarget.request();
+		    Response response=builder.get();
+		    
+		    String output=response.readEntity(String.class);
+		    try {
+		    	JSONObject json=JSONObject.parse(output);
+		    	if(json.containsKey("className")) {
+		    		//routing mbean is found, is collective controller
+		    		return true;
+		    	}else if(json.containsKey("stackTrace") && 
+		    			 json.get("stackTrace").toString().startsWith("javax.management.InstanceNotFoundException")) {
+		    		//routing mbean instance is NOT found, not controller
+		    		return false;
+		    	}else {
+		    		throw new Exception("Unexpected output");
+		    	}
+		    }catch(Exception e) {
+		    	//output other than expected json returned
+		    	logger.info("Unexpected output from "+url+" when attempting to check if server is collective controller.  Will retry...");
+		    	Thread.sleep(10000);
+		    	return isCollectiveController();
+		    }
+		}catch(Exception e) {
+			logger.log(Level.SEVERE,"Uncaught exception in "+klass+".isCollectiveController",e);
+			return false;
+		}
 	}
 
 	private static String klass = FileSyncService.class.getName();
 	private static Logger logger = Logger.getLogger(klass);
 	private Client client=null;
-	private String user;
-	private String password;
-	private String baseURL;
-	public static Boolean isCollectiveController = false;
+	private String user=null;
+	private String password=null;
+	private String baseURL=null;
+	private Boolean isCollectiveController=null;
 	private String authorizationHeaderValue=null;
-	private String inputSSLProtocol;
+	private String inputSSLProtocol=null;
+	
 	private String getSSLProtocol(String ssl) throws NoSuchAlgorithmException{
 			if(ssl!=null && !ssl.equals("")) {
 				try {

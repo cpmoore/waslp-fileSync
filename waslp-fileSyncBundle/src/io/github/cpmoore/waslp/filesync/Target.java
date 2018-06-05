@@ -14,7 +14,7 @@ import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
 import io.github.cpmoore.waslp.filesync.util.PathUtil;
 import io.github.cpmoore.waslp.filesync.util.PropertyUtil;
 
-public class Target {
+public class Target extends Thread {
     private static String klass = Target.class.getName();
     private static Logger logger = Logger.getLogger(klass);
     public String hostName;
@@ -47,6 +47,7 @@ public class Target {
     final private HashMap<String,HashSet<String>> directoriesToDelete=new HashMap<String,HashSet<String>>();
     final private HashMap<String,HashSet<String>> filesToSync=new HashMap<String,HashSet<String>>();
     private FileTransferHandler fileTransferHandler=null;
+    private Boolean isSyncing=false;
     
     @Override
     public String toString() {
@@ -78,6 +79,10 @@ public class Target {
     
     
     public void synchronizeFiles() {
+    	 if(isSyncing) {
+    		 return;
+    	 }
+    	 isSyncing=true;
     	 HashSet<String> deletedDirectories=new HashSet<String>();
     	 int failureCount=0;
     	 int successCount=0;
@@ -191,11 +196,20 @@ public class Target {
 	         
      	 if(failureCount>0) {
      		 logger.info("Some files failed to sync to "+toString()+" "+failureCount+" failures occurred. Will retry...");
+     		 this.start();
      	 }else if(successCount>0){
      		 logger.info("All files synced successfully to "+toString());
      	 }
-    	 
+    	 isSyncing=false;
 	
+    }
+    public void run() {
+    	try {
+			Thread.sleep(30000);
+		} catch (InterruptedException e) {
+			return;
+		}
+    	synchronizeFiles();
     }
 	
 	public String getHostName() {
