@@ -28,10 +28,10 @@ Currently this repository exists as an eclipse project.  Eventually it will be c
 The Liberty feature can be added to a Liberty profile installation using the `featureManager` command as follows:
 
 ```bash
-wlp\bin\featureManager install waslp-fileSync-1.0.0.esa
+wlp\bin\featureManager install fileSync-1.0.0.esa
 ```
 
-A server instance wishing to use the feature should add the `usr:waslp-fileSync` feature to the `featureManager` stanza in `server.xml`. 
+A server instance wishing to use the feature should add the `usr:fileSync-1.0` feature to the `featureManager` stanza in `server.xml`. 
 The server must (at least) be using Java 7.
 
 
