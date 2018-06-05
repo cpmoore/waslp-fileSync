@@ -192,8 +192,12 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 		String file = relativeFile;
 		if (!relativeFile.startsWith("/")) {
 			file = sourcePath + "/" + relativeFile;
-		} else {
+		} else if(relativeFile.startsWith(sourcePath+"/")){
 			relativeFile = relativeFile.substring(sourcePath.length() + 1);
+		}else {
+			while(relativeFile.startsWith("/")) {
+				relativeFile=relativeFile.substring(1);
+			}
 		}
 
 		logger.info(
