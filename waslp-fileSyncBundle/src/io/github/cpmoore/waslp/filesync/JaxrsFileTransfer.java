@@ -35,7 +35,6 @@ import com.ibm.websphere.crypto.UnsupportedCryptoAlgorithmException;
 
 
 import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
-import io.github.cpmoore.waslp.filesync.util.PathUtil;
 
 
 public class JaxrsFileTransfer implements FileTransferHandler {
@@ -66,7 +65,7 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 	private String user;
 	private String password;
 	private String baseURL;
-	public static Boolean isCollectiveController = true;
+	public static Boolean isCollectiveController = false;
 	private String authorizationHeaderValue=null;
 	private String inputSSLProtocol;
 	private String getSSLProtocol(String ssl) throws NoSuchAlgorithmException{

@@ -50,7 +50,13 @@ public class Target {
     
     @Override
     public String toString() {
-    	return "hostName="+hostName+",serverUserDir="+serverUserDir+",serverName="+serverName;
+    	if(serverName!=null&&serverUserDir!=null) {
+    		return "Server="+hostName+","+serverUserDir+","+serverName;
+    	}else if(hostName.contains(",")){
+    		return "Hosts="+hostName;
+    	}else {
+    		return "Host="+hostName;
+    	}
     }
     
     public void setFileTransferHandler(FileTransferHandler fileTransferHandler) {
@@ -186,7 +192,7 @@ public class Target {
      	 if(failureCount>0) {
      		 logger.info("Some files failed to sync to "+toString()+" "+failureCount+" failures occurred. Will retry...");
      	 }else if(successCount>0){
-     		 logger.info("All files synced successfuly to "+toString());
+     		 logger.info("All files synced successfully to "+toString());
      	 }
     	 
 	

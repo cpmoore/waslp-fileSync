@@ -14,7 +14,6 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
-import io.github.cpmoore.waslp.filesync.util.PropertyUtil;
 
 
 //TODO Implement file registry
