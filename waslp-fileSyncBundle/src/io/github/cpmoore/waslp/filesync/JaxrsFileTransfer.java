@@ -153,9 +153,15 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 			return false;
 		}		
 		String output = response.readEntity(String.class);
+		if(output.length()==0) {
+			return true;
+		}
 		try {
 			JSONObject json=JSONObject.parse(output);
 			logger.info(json.serialize(true));
+			if(json.containsKey("taskStatus") && json.get("taskStatus").equals("failed")) {
+				return false;
+			}
 			return true;
 		} catch (Exception e) {
 			logger.severe("JSONObject output could not be read.  Actual output was " + output);
@@ -167,7 +173,7 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 		if(response==null) {
 			return true;
 		}
-		if(response.getStatus()==200) {
+		if(response.getStatus()<300) {
 			return false;
 		}
 		
@@ -194,12 +200,6 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 		while(file.endsWith("/")) {
 			file=file.substring(0,file.length()-1);
 		}
-//		if (!relativeFile.startsWith("/")) {
-//			file = sourcePath + "/" + relativeFile;
-//		} else if(relativeFile.startsWith(sourcePath+"/")){
-//			relativeFile=PathUtil.getRelative(file, sourcePath);
-//		}
-
 		logger.info("Sending file " + file + " to " + target + ",outputPath=" + target.getOutputDir() + "/" + relativeFile);
 		String parms;
 		try {
@@ -248,25 +248,15 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 
 	@Override
 	public Boolean deleteFile(String sourcePath, String relativeFile, Target target) {
-		String file = relativeFile;
-		if (!relativeFile.startsWith("/")) {
-			file = sourcePath + "/" + relativeFile;
-		} else {
-			relativeFile=PathUtil.getRelative(file, sourcePath);
+		String file = sourcePath+"/"+relativeFile;
+		while(file.endsWith("/")) {
+			file=file.substring(0,file.length()-1);
 		}
-		logger.info("Deleting file " + file + " from " + target + ",outputPath=" + target.getOutputDir() + "/"
-				+ relativeFile);
-		String parms;
-		try {
-			parms = URLEncoder.encode(target.getOutputDir() + "/" + relativeFile, "UTF-8")
-					+ "?recursiveDelete=true";
-		} catch (UnsupportedEncodingException e) {
-			logger.log(Level.SEVERE,"Uncaught exception in "+klass+".deleteFile", e);
-			return false;
-		}
-		
+		logger.info("Deleting file "+file+" from "+target+",outputPath="+target.getOutputDir()+"/"+relativeFile);
 		Response response=null;
 		try {
+			String parms = URLEncoder.encode(target.getOutputDir() + "/" + relativeFile, "UTF-8")
+					+ "?recursiveDelete=true";
 			Invocation.Builder builder = getBuilder(baseURL + "/" + parms, target);
 		    response = builder.delete();
 		}catch(Exception e) {

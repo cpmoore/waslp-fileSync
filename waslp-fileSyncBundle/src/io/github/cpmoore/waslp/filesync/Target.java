@@ -73,6 +73,8 @@ public class Target {
     
     public void synchronizeFiles() {
     	 HashSet<String> deletedDirectories=new HashSet<String>();
+    	 int failureCount=0;
+    	 int successCount=0;
     	 for(String sourcePath:directoriesToDelete.keySet()) {
     		 
     		 //convert to array and sort by length of directory, ex /dir,/dir/dir2,/dir/dir2/dir3
@@ -100,17 +102,19 @@ public class Target {
     			 }
     			 try {
 	    			 if(alreadyDeleted||fileTransferHandler.deleteFile(sourcePath,relative, this)) {
+	    				 successCount++;
 	    				 directoriesToDelete.get(sourcePath).remove(directory);
 	    				 if(!alreadyDeleted) {
 	    				   deletedDirectories.add(directory);
 	    				 }
 	    			 }else {
-	    				 logger.info("Directory "+directory+" failed to delete from "+toString());
+	    				 logger.log(Level.SEVERE,"Directory "+directory+" failed to delete from "+toString());
 	    			 }
     		     }catch(Exception e) {
 			    	 logger.log(Level.SEVERE,"Uncaught exception in attempting to delete remote directory",e);
 			     }
     		 }
+    		 failureCount+=directoriesToDelete.get(sourcePath).size();
     	 }
     	
     	 
@@ -123,7 +127,6 @@ public class Target {
     					 break;
     				 }
     			 }
-    			 
     			 try {
     				 if(alreadyDeleted) {
     					 filesToDelete.get(sourcePath).remove(file); 
@@ -133,9 +136,10 @@ public class Target {
 	        			   relative=PathUtil.getFileName(file);
 	        			 }
 	    			     if(fileTransferHandler.deleteFile(sourcePath,relative, this)) {
+	    			       successCount++;
 	    			       filesToDelete.get(sourcePath).remove(file);
 	   			         }else {
-	   			    	   logger.info("File "+file+" failed to delete from "+toString());
+	   			           logger.log(Level.SEVERE,"File "+file+" failed to delete from "+toString());
 	   			         }
     				 }
     			 }catch(Exception e) {
@@ -143,27 +147,48 @@ public class Target {
    			     }
     			 
     		 }
+    		 failureCount+=filesToDelete.get(sourcePath).size();
     	 }
     	
     	 
     	 for(String sourcePath:filesToSync.keySet()) {
     		 for(String file:new HashSet<String>(filesToSync.get(sourcePath))) {
+    			 Boolean valid=true;
+    			 for(String dir:directoriesToDelete.get(sourcePath)) {
+    				 if(file.startsWith(dir+"/")) {
+    					 logger.log(Level.SEVERE,"Cannot delete "+file+" from "+toString()+" yet since "+dir+" failed to delete");
+    					 valid=false;
+    					 break;
+    				 }
+    			 }
+    			 if(!valid) {
+    				 continue;
+    			 }
+    			 
     			 String relative=PathUtil.getRelative(file,sourcePath);
     			 if(relative.length()==0) {
     				 relative=PathUtil.getFileName(file);
     			 }
     			 try {
-	    			 if(!fileTransferHandler.sendFile(sourcePath,relative, this)) { 
-	   				    logger.info("File "+file+" failed to transfer to "+toString());
+	    			 if(fileTransferHandler.sendFile(sourcePath,relative, this)) {
+	    				successCount++;
+		   			    filesToSync.get(sourcePath).remove(file);
 	   			     }else {
-	   			    	filesToSync.get(sourcePath).remove(file);
+	   			    	logger.log(Level.SEVERE,"File "+file+" failed to transfer to "+toString());
 	   			     }
     			 }catch(Exception e) {
    			    	 logger.log(Level.SEVERE,"Uncaught exception in attempting to send file",e);
    			     }
     		 }
+    		 failureCount+=filesToSync.get(sourcePath).size();
     	 }
-		 
+	         
+     	 if(failureCount>0) {
+     		 logger.info("Some files failed to sync to "+toString()+" "+failureCount+" failures occurred. Will retry...");
+     	 }else if(successCount>0){
+     		 logger.info("All files synced successfuly to "+toString());
+     	 }
+    	 
 	
     }
 	
