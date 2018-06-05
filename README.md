@@ -8,7 +8,6 @@ This could also be used for deploying new web apps to collective members.
 
 Creates, deletes, and updates are all tracked and synced.
 
-
 Since this feature uses the FileTransfer MBean to upload one or more files, either the remoteFileAccess element must be specified in the server.xml of the server that will receive the file(s), or the target directory must exist on the hostWriteList for the registered host.
 
 Here is an example of a remoteFileAccess element:
@@ -18,6 +17,8 @@ Here is an example of a remoteFileAccess element:
        <writeDir>${server.config.dir}</writeDir> 
 </remoteFileAccess> 
 ```
+
+Additionally this feature must be installed on a collective controller with both the `collectiveController-1.0` and `jaxrsClient-2.0` features enabled. 
 
 ## Building the Liberty feature
 Currently this repository exists as an eclipse project.  Eventually it will be converted to a maven or gradle project.
