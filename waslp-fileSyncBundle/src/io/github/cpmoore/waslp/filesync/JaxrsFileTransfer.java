@@ -129,7 +129,7 @@ public class JaxrsFileTransfer implements FileTransferHandler {
 	public Invocation.Builder getBuilder(String url, Target target) throws Exception {
 		WebTarget webtarget = getClient().target(url);
 		Invocation.Builder builder = webtarget.request();
-		header(builder,"com.ibm.websphere.jmx.connector.rest.asyncExecution", true);
+		header(builder,"com.ibm.websphere.jmx.connector.rest.asyncExecution", false);
 		if(authorizationHeaderValue!=null) {
 			header(builder,"Authorization", authorizationHeaderValue);
 		}

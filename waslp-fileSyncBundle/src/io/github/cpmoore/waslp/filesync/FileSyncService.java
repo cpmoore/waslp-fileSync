@@ -20,7 +20,7 @@ import io.github.cpmoore.waslp.filesync.util.PropertyUtil;
 //TODO Implement file registry
 //TODO Auto expand ear, war, and zip file option
 //TODO Add option to delete remote apps before send
-
+//TODO Add rest api for adding files, targets, and performing manual sync.  Full sync=sync all sources
 public class FileSyncService implements ManagedService{
 		public FileSyncService(BundleContext bContext) {
 			this.bContext=bContext;

@@ -62,7 +62,7 @@ public class Target {
     
 	public void addFilesToSync(HashMap<String,HashSet<String>> file) {
 		PropertyUtil.mergeAll(filesToSync,file);
-	}
+	} 
 	public void addFilesToDelete(HashMap<String,HashSet<String>> file) {
 		PropertyUtil.mergeAll(filesToDelete,file,filesToSync);
 	}	 

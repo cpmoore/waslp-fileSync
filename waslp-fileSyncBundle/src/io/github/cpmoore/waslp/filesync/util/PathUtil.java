@@ -3,8 +3,8 @@ package io.github.cpmoore.waslp.filesync.util;
 public class PathUtil {
 
 	public static String normalizePath(String path) {
-		path=path.replace("\\","/");
-		if(!path.startsWith("/")) {
+		path=path.replace("\\","/").replaceAll("/+", "/");;
+		if(!path.startsWith("/")&&!path.startsWith("${")) {
 			path="/"+path;
 		}
 		while(path.endsWith("/")) {
