@@ -17,5 +17,14 @@ public class PathUtil {
 		return x[x.length-1];
 		
 	}
-    
+    public static String getRelative(String file,String sourcePath) {
+    	 if(!file.startsWith("/")) {
+    		return file;
+    	 }
+    	 file=file.substring(sourcePath.length());
+		 while(file.endsWith("/")) {
+			 file=file.substring(0, file.length()-1);
+		 }
+		 return file;
+    }
 }

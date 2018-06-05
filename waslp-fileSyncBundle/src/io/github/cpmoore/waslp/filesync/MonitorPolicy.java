@@ -17,7 +17,50 @@ import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
 import io.github.cpmoore.waslp.filesync.util.PathUtil;
 import io.github.cpmoore.waslp.filesync.util.PropertyUtil;
 
-public class MonitorPolicy extends Thread{ 
+public class MonitorPolicy extends Thread{
+  public MonitorPolicy(FileTransferHandler handler,ConfigurationAdmin configAdmin,Dictionary<String,?> properties) throws IOException {
+    	this.fileTransferHandler=handler;
+    	this.pollInterval=PropertyUtil.getInteger(properties, "pollInterval",5000);
+    	this.minSyncInterval=PropertyUtil.getInteger(properties, "minSyncInterval",5000);
+    	this.recursive=PropertyUtil.getBoolean(properties, "recursive",true);
+    	this.includeInRegistry=PropertyUtil.getBoolean(properties, "includeInRegistry",true); 
+		for(String target:PropertyUtil.getStringArray(properties, "target")) {
+			Target t=new Target(configAdmin
+		    		.getConfiguration(target)
+		    		.getProperties());
+			t.setFileTransferHandler(fileTransferHandler);
+		    targets.add(t);
+		}
+		
+		registerSources(PropertyUtil.getStringArray(properties, "source"));
+	}
+	
+	public MonitorPolicy(Integer interval,Target[] targetArray,String[] sourceArray) {
+		registerTargets(targetArray);
+		registerSources(sourceArray);
+	}
+	public void registerTargets(Target... targetArray) {
+		for(Target target:targetArray) {
+			if(fileTransferHandler!=null) {
+		  	  target.setFileTransferHandler(fileTransferHandler);
+			}
+			targets.add(target);
+		}
+	}
+	
+    public void registerSources(String...sources) {
+    	for(String source:sources) {
+    		  if(!source.startsWith("/")) {
+    			  source=PathUtil.normalizePath(new File(source).getAbsolutePath());
+    		  }
+			  logger.info("Monitoring changes to "+source);
+			  monitoredFiles.add(new MonitoredFile(source,recursive,new RelativeEventHandler(source)));
+		}
+    	if(monitoredFiles.size()>0 && !this.isAlive()) {
+			this.start();
+		} 
+    }
+   
     private static String klass = MonitorPolicy.class.getName();
     private static Logger logger = Logger.getLogger(klass);
     private long lastSyncTime=0;    
@@ -26,6 +69,7 @@ public class MonitorPolicy extends Thread{
     private Integer pollInterval=5000;
     private Integer minSyncInterval=15000;
     private Boolean paused=false;
+    private Boolean includeInRegistry=true;
     private Boolean recursive=true;
     private Boolean isSyncingFiles=false;
     private FileTransferHandler fileTransferHandler;
@@ -157,48 +201,8 @@ public class MonitorPolicy extends Thread{
  	   }
  	}
 	
-     public MonitorPolicy(FileTransferHandler handler,ConfigurationAdmin configAdmin,Dictionary<String,?> properties) throws IOException {
-    	this.fileTransferHandler=handler;
-    	this.pollInterval=PropertyUtil.getInteger(properties, "pollInterval",5000);
-    	this.minSyncInterval=PropertyUtil.getInteger(properties, "minSyncInterval",5000);
-    	this.recursive=PropertyUtil.getBoolean(properties, "recursive",true);
-		for(String target:PropertyUtil.getStringArray(properties, "target")) {
-			Target t=new Target(configAdmin
-		    		.getConfiguration(target)
-		    		.getProperties());
-			t.setFileTransferHandler(fileTransferHandler);
-		    targets.add(t);
-		}
-		
-		registerSources(PropertyUtil.getStringArray(properties, "source"));
-	}
+    
 	
-	public MonitorPolicy(Integer interval,Target[] targetArray,String[] sourceArray) {
-		registerTargets(targetArray);
-		registerSources(sourceArray);
-	}
 	
-	public void registerTargets(Target... targetArray) {
-		for(Target target:targetArray) {
-			if(fileTransferHandler!=null) {
-		  	  target.setFileTransferHandler(fileTransferHandler);
-			}
-			targets.add(target);
-		}
-	}
-	
-    public void registerSources(String...sources) {
-    	for(String source:sources) {
-    		  if(!source.startsWith("/")) {
-    			  source=PathUtil.normalizePath(new File(source).getAbsolutePath());
-    		  }
-			  logger.info("Monitoring changes to "+source);
-			  monitoredFiles.add(new MonitoredFile(source,recursive,new RelativeEventHandler(source)));
-		}
-    	if(monitoredFiles.size()>0 && !this.isAlive()) {
-			this.start();
-		} 
-    }
-   
     
 }

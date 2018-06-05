@@ -18,6 +18,7 @@
 package io.github.cpmoore.waslp.filesync;
 
 import java.util.Hashtable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.osgi.framework.BundleActivator;
@@ -34,9 +35,13 @@ public class Activator implements BundleActivator  {
 	
 	@Override
 	public void start(BundleContext context) throws Exception {
-		service=new FileSyncService(context);
-		configRef=context.registerService(ManagedService.class, service, getDefaults());
-		logger.info("Registered file synchronization service");
+		try {
+			service=new FileSyncService(context);
+			configRef=context.registerService(ManagedService.class, service, getDefaults());
+			logger.info("Registered file synchronization service");
+		}catch(Exception e) {
+			logger.log(Level.SEVERE,"Could not register file synchronization service",e);
+		}
 	}
 
 	private static Hashtable<String, ?> getDefaults() {

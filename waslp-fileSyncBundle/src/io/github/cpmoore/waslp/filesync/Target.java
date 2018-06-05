@@ -1,11 +1,13 @@
 package io.github.cpmoore.waslp.filesync;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
@@ -62,10 +64,10 @@ public class Target {
 		PropertyUtil.mergeAll(filesToSync,file);
 	}
 	public void addFilesToDelete(HashMap<String,HashSet<String>> file) {
-		PropertyUtil.mergeAll(filesToDelete,file);
-	}	
+		PropertyUtil.mergeAll(filesToDelete,file,filesToSync);
+	}	 
    public void addDirectoriesToDelete(HashMap<String,HashSet<String>> file) {
-	    PropertyUtil.mergeAll(directoriesToDelete,file);
+	    PropertyUtil.mergeAll(directoriesToDelete,file,filesToSync);
 	}	
     
     
@@ -84,10 +86,10 @@ public class Target {
 			 });
 
     		 for(String directory:dirs) {
-    			 String relative=directory;
-    			 if(relative.startsWith("/")) {
-    			    relative=relative.substring(sourcePath.length()+1);
-    			 }    			 
+    			 String relative=PathUtil.getRelative(directory,sourcePath);
+    			 //do not delete if it's the source path. other wise whole output dir will be deleted
+    			 if(relative.length()==0){continue;}
+    			     			 
     			 //ensure parent directory hasn't already been deleted
     			 Boolean alreadyDeleted=false;
     			 for(String s:deletedDirectories) {
@@ -96,22 +98,24 @@ public class Target {
     					 break;
     				 }
     			 }
-    			 if(alreadyDeleted||fileTransferHandler.deleteFile(sourcePath,relative, this)) {
-    				 directoriesToDelete.get(sourcePath).remove(directory);
-    				 if(!alreadyDeleted) {
-    				   deletedDirectories.add(directory);
-    				 }
-    			 }else {
-    				 logger.info("Directory "+directory+" failed to delete from "+toString());
-    			 }
+    			 try {
+	    			 if(alreadyDeleted||fileTransferHandler.deleteFile(sourcePath,relative, this)) {
+	    				 directoriesToDelete.get(sourcePath).remove(directory);
+	    				 if(!alreadyDeleted) {
+	    				   deletedDirectories.add(directory);
+	    				 }
+	    			 }else {
+	    				 logger.info("Directory "+directory+" failed to delete from "+toString());
+	    			 }
+    		     }catch(Exception e) {
+			    	 logger.log(Level.SEVERE,"Uncaught exception in attempting to delete remote directory",e);
+			     }
     		 }
     	 }
+    	
+    	 
     	 for(String sourcePath:filesToDelete.keySet()) {
     		 for(String file:new HashSet<String>(filesToDelete.get(sourcePath))) {
-    			 String relative=file;
-    			 if(relative.startsWith("/")) {
-    			    relative=relative.substring(sourcePath.length()+1);
-    			 }
     			 Boolean alreadyDeleted=false;
     			 for(String s:deletedDirectories) {
     				 if(file.startsWith(s+"/")) {
@@ -120,23 +124,42 @@ public class Target {
     				 }
     			 }
     			 
-    			 if(alreadyDeleted||fileTransferHandler.deleteFile(sourcePath,relative, this)) {
-    				filesToDelete.get(sourcePath).remove(file);
-   			     }else {
-   			    	logger.info("File "+file+" failed to delete from "+toString());
+    			 try {
+    				 if(alreadyDeleted) {
+    					 filesToDelete.get(sourcePath).remove(file); 
+    				 }else {
+						 String relative=PathUtil.getRelative(file,sourcePath);
+	        			 if(relative.length()==0) {
+	        			   relative=PathUtil.getFileName(file);
+	        			 }
+	    			     if(fileTransferHandler.deleteFile(sourcePath,relative, this)) {
+	    			       filesToDelete.get(sourcePath).remove(file);
+	   			         }else {
+	   			    	   logger.info("File "+file+" failed to delete from "+toString());
+	   			         }
+    				 }
+    			 }catch(Exception e) {
+   			    	 logger.log(Level.SEVERE,"Uncaught exception in attempting to delete remote file",e);
    			     }
+    			 
     		 }
     	 }
+    	
+    	 
     	 for(String sourcePath:filesToSync.keySet()) {
     		 for(String file:new HashSet<String>(filesToSync.get(sourcePath))) {
-    			 String relative=file;
-    			 if(relative.startsWith("/")) {
-    			     relative=relative.substring(sourcePath.length()+1);
+    			 String relative=PathUtil.getRelative(file,sourcePath);
+    			 if(relative.length()==0) {
+    				 relative=PathUtil.getFileName(file);
     			 }
-    			 if(!fileTransferHandler.sendFile(sourcePath,relative, this)) { 
-   				    logger.info("File "+file+" failed to delete from "+toString());
-   			     }else {
-   			    	filesToSync.get(sourcePath).remove(file);
+    			 try {
+	    			 if(!fileTransferHandler.sendFile(sourcePath,relative, this)) { 
+	   				    logger.info("File "+file+" failed to transfer to "+toString());
+	   			     }else {
+	   			    	filesToSync.get(sourcePath).remove(file);
+	   			     }
+    			 }catch(Exception e) {
+   			    	 logger.log(Level.SEVERE,"Uncaught exception in attempting to send file",e);
    			     }
     		 }
     	 }

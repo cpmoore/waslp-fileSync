@@ -1,7 +1,7 @@
 Subsystem-ManifestVersion: 1.0
 IBM-Feature-Version: 2
-IBM-ShortName: waslp-fileSync
-Subsystem-SymbolicName: waslp-fileSync;visibility:=public
+IBM-ShortName: fileSync-1.0
+Subsystem-SymbolicName: fileSync;visibility:=public
 Subsystem-Version: 1.0.0
 Subsystem-Type: osgi.subsystem.feature
 Subsystem-Content: waslp-fileSyncBundle;version="1.0.0"

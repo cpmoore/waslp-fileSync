@@ -6,7 +6,10 @@
   <OCD id="fileSync" name="fileSync">
     <AD id="baseURL" name="baseURL" type="String" required="true"/>
     <AD id="user" name="user" type="String"/>
+    <AD id="id" name="id" type="String" required="false"/>
     <AD id="password" name="password" type="String"/>
+    <AD id="sslProtocol" name="sslProtocol" type="String" required="false"/>
+    <AD id="fileRegistry" name="fileRegistry" type="String" required="false" />
     <AD id="policy" name="policy" ibm:type="pid" ibm:reference="policy-pid"
       required="true" type="String" cardinality="6" />       
   </OCD>
@@ -16,6 +19,7 @@
     <AD id="pollInterval" name="pollInterval" type="Integer" default="5000" required="false"/>
     <AD id="minSyncInterval" name="minSyncInterval" type="Integer" default="15000" required="false"/>
     <AD id="recursive" name="recursive" type="Boolean" default="true" required="false"/>
+    <AD id="includeInRegistry" name="includeInRegistry" type="Boolean" default="true" required="false"/>
     <AD id="target" name="target" ibm:type="pid" ibm:reference="target-pid"
       required="true" type="String" cardinality="6" />
   </OCD>

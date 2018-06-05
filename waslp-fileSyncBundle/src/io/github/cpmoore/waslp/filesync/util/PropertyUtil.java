@@ -2,6 +2,7 @@ package io.github.cpmoore.waslp.filesync.util;
 
 import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.HashMap;
 
 public class PropertyUtil {
@@ -48,13 +49,30 @@ public class PropertyUtil {
 	   }}catch(Exception e) {};
 	   throw new IllegalArgumentException("Value for key '"+key+"' is not a Boolean");
    }
-   public static void mergeAll(HashMap<String,HashSet<String>> target,HashMap<String,HashSet<String>> source) {
+   public static void mergeAll(HashMap<String,HashSet<String>> target,HashMap<String,HashSet<String>> source,HashMap<String,HashSet<String>> hashSetToRemoveFrom) {
+	   
 	   for(String s:source.keySet()) {
 		   if (!target.containsKey(s)) {
 			   target.put(s, source.get(s));
-		   }else {
-			   target.get(s).addAll(source.get(s));
+			   continue;
 		   }
-	   }
+		   if(hashSetToRemoveFrom==null) {
+			    target.get(s).addAll(source.get(s));
+			    continue;
+			}
+		    Set<String> toAdd=source.get(s);
+		    for(String directory:toAdd) {
+				target.get(s).add(directory);
+				 Set<String> set=hashSetToRemoveFrom.get(s);
+				 for(String file:new HashSet<String>(set)) {
+					   if(file.startsWith(directory+"/")) {
+						   set.remove(file);
+					   }
+			      } 
+		     }   
+	    }	   
    }
+   public static void mergeAll(HashMap<String,HashSet<String>> target,HashMap<String,HashSet<String>> source) {
+       mergeAll(target,source,null);
+   } 
 }

@@ -3,6 +3,7 @@ package io.github.cpmoore.waslp.filesync;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.osgi.framework.BundleContext;
@@ -13,22 +14,21 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 import io.github.cpmoore.waslp.filesync.interfaces.FileTransferHandler;
- 
+import io.github.cpmoore.waslp.filesync.util.PropertyUtil;
+
+
+//TODO Implement file registry
+//TODO Auto expand ear, war, and zip file option
+//TODO Add option to delete remote apps before send
+
 public class FileSyncService implements ManagedService{
 		public FileSyncService(BundleContext bContext) {
-			logger.info("fileSync init ServiceImpl");
 			this.bContext=bContext;
 		}
-		
-		
-		 
+ 
 	    private static String klass = FileSyncService.class.getName();
 	    private static Logger logger = Logger.getLogger(klass);
-	    private String user;
-	    private String password;
-	    private String baseURL;
-	    
-	    
+	    private String fileRegistry=null;
 	    private BundleContext bContext;
 	    private static ArrayList<MonitorPolicy> monitorPolicies=new ArrayList<MonitorPolicy>();
 	    public void unregisterPolicies() {
@@ -50,25 +50,28 @@ public class FileSyncService implements ManagedService{
 				ServiceReference configurationAdminReference = bContext
 						.getServiceReference(ConfigurationAdmin.class.getName());
 				
-				this.user=(String) properties.get("user");
-				this.password=(String) properties.get("password");
-				this.baseURL=(String) properties.get("baseURL");
-				FileTransferHandler fileTransferHnadler=new JaxrsFileTransfer(baseURL,user,password);
+		    	this.fileRegistry=(String) properties.get("fileRegistry");
+
+				FileTransferHandler fileTransferHandler=new JaxrsFileTransfer(
+						(String) properties.get("baseURL"),
+						(String) properties.get("user"),
+						(String) properties.get("password"),
+						(String) properties.get("sslProtocol")); 
 				
 				String[] policies=(String[]) properties.get("policy");
 				if (configurationAdminReference != null) {
 					ConfigurationAdmin configAdmin = (ConfigurationAdmin) bContext
 							.getService(configurationAdminReference);
 					
-					
+
 					for(String policy:policies) {  
 						Configuration policyConfig; 
 						try {
 							policyConfig = configAdmin.getConfiguration(policy);
 							Dictionary<String,?> policyProps = policyConfig.getProperties();
-							monitorPolicies.add(new MonitorPolicy(fileTransferHnadler,configAdmin,policyProps));
+							monitorPolicies.add(new MonitorPolicy(fileTransferHandler,configAdmin,policyProps));
 						} catch (IOException e) {
-							logger.throwing(klass, "updated",e);
+							logger.log(Level.SEVERE,"Uncaught exception in "+klass+".updated",e);
 							continue;
 						}
 							
